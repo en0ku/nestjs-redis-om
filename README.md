@@ -1,13 +1,30 @@
 <p align="center">
+  <img height="100px" src="./.github/redisoM.svg" alt="Redis OM Logo" />
+</p>
+
+<p align="center" >
   This module provides fast and easy way for creating Redis data model in your <a href="https://github.com/nestjs/nest" target="blank" rel="noopener noreferrer">Nestjs</a> applications.
 </p>
+
+## Description
+
 <p>
   <a href="https://github.com/redis/redis-om-node" target="blank" rel="noopener noreferrer">Redis OM</a> for Node.js makes it easy to add Redis to your Node.js application by mapping the Redis data structures you know and love to simple JavaScript objects. No more pesky, low-level commands, just pure code with a fluent interface.
 </p>
 
-Define an Entity:
+## Getting Started
+
+```
+$ npm i redis redis-om nestjs-redis-om
+```
+
+## Usage
+
+### Define an Entity:
 
 ```typescript
+import { Field, Schema, Entity } from 'nestjs-redis-om';
+
 export interface UserEntity extends Entity {}
 @Schema('user')
 export class UserEntity {
@@ -25,24 +42,35 @@ export class UserEntity {
 }
 ```
 
-Create a nestjs module:
+### Create a nestjs module:
 
 ```typescript
+import { Module } from '@nestjs/common';
+import { RedisOmModule } from 'nestjs-redis-om';
+import { UserEntity } from './entities/test.entity';
+import { UserService } from './user.service';
+
 @Module({
   imports: [RedisOmModule.forFeature([UserEntity])],
   providers: [UserService],
-  controllers: [UserController],
+  controllers: [],
 })
 export class UserModule {}
 ```
 
-Import in the app module sync:
+### Import in the app module:
+
+sync:
 
 ```typescript
+import { Module } from '@nestjs/common';
+import { RedisOmModule } from 'nestjs-redis-om';
+import { UserModule } from './user/user.module';
+
 @Module({
   imports: [
     RedisOmModule.forRoot({
-      url: `redis://user:password@127.0.0.1:6379`,
+      url: 'redis://user:password@localhost:6379',
     }),
     UserModule,
   ],
@@ -55,6 +83,9 @@ export class AppModule {}
 or async:
 
 ```typescript
+import { ConfigService } from '@nestjs/config';
+import { RedisOmModuleOptions } from 'nestjs-redis-om';
+
 export const getRedisOmConfig = async (
   configService: ConfigService,
 ): Promise<RedisOmModuleOptions> => {
@@ -71,6 +102,12 @@ export const getRedisOmConfig = async (
 ```
 
 ```typescript
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RedisOmModule } from 'nestjs-redis-om';
+import { UserModule } from './user/user.module';
+import { getRedisOmConfig } from './config/redis-om.config';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -89,9 +126,14 @@ export const getRedisOmConfig = async (
 export class AppModule {}
 ```
 
-And use in a service
+### And use it in a service:
 
 ```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from 'nestjs-redis-om';
+import { Repository } from 'redis-om';
+import { UserEntity } from './entities/test.entity';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -110,3 +152,7 @@ export class UserService {
   }
 }
 ```
+
+## License
+
+MIT

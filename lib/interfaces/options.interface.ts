@@ -1,4 +1,3 @@
-import * as redis from 'redis';
 import { RedisClientOptions } from './redis-client.type';
 import { ModuleMetadata, Provider, Type } from '@nestjs/common';
 

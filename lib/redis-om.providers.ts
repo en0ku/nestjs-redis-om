@@ -1,10 +1,6 @@
 import { Provider } from '@nestjs/common';
-import { Entity, Repository, Schema, SchemaDefinition } from 'redis-om';
-import {
-  getDataSourceToken,
-  getFieldMetadataToken,
-  getRepositoryToken,
-} from './utils/redis-om.utils';
+import { Repository, Schema } from 'redis-om';
+import { getDataSourceToken, getRepositoryToken } from './utils/redis-om.utils';
 import { RedisClient } from './interfaces/redis-client.type';
 import { EntitiesMetadataStorage } from './entities-metadata.storage';
 import { EntityClass } from './interfaces/entity-class-or-schema.type';

@@ -12,7 +12,7 @@ export class EntitiesMetadataStorage {
     const entityMetadata = { ...this.getEntitiesMetadata(target) };
     this.storage.set(target, { ...entityMetadata, ...metadata });
   }
-  static addEntityFeldMetadata(
+  static addEntityFieldMetadata(
     target: EntityClass,
     field: string,
     metadata: FieldDefinition,
