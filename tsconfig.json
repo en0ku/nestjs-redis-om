@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": false
   },
   "include": ["lib/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "tests"],
   "typedocOptions": {
     "entryPoints": ["lib/index.ts"],
     "out": "docs",
