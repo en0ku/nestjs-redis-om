@@ -7,3 +7,4 @@ lib
 .prettierrc
 package-lock.json
 tsconfig.json
+tsconfig.tsbuildinfo
