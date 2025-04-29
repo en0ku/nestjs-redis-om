@@ -143,13 +143,15 @@ export class RedisOmCoreModule implements OnApplicationShutdown, OnModuleInit {
   }
 
   async onModuleInit() {
-    this.logger.log(`"${this.options.name}" connected.`);
+    this.logger.log(`"${getDataSourceToken(this.options)}" connected.`);
 
     const dataSource = this.moduleRef.get<RedisClient>(
       getDataSourceToken(this.options),
     );
     dataSource.on('error', (err) => {
-      this.logger.error(`Redis error (${this.options.name}): ${err.message}`);
+      this.logger.error(
+        `Redis error (${getDataSourceToken(this.options)}): ${err.message}`,
+      );
     });
   }
 
@@ -160,7 +162,9 @@ export class RedisOmCoreModule implements OnApplicationShutdown, OnModuleInit {
     try {
       if (dataSource && dataSource.isOpen) {
         await dataSource.quit();
-        this.logger.log('data source has disconnected');
+        this.logger.log(
+          `data source ${getDataSourceToken(this.options)} has disconnected`,
+        );
       }
     } catch (e) {
       this.logger.error(e?.message);
