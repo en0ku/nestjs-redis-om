@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { RedisOmModule } from '../../lib';
 import { UserModule } from './user/user.module';
+import { CONNECTION_NAME } from './app.constants';
 
 @Module({
   imports: [
     RedisOmModule.forRootAsync({
       useFactory: () => ({
-        username: 'redis',
-        password: 'rediS',
+        password: 'password',
       }),
-      name: 'CONNECTION_1',
+      name: CONNECTION_NAME,
     }),
     UserModule,
   ],

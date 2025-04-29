@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 import { Server } from 'http';
-import { SyncAppModule } from '../src/app-sync.module';
+import { AsyncAppModule } from '../../example/src/app-async.module';
 
 const body = {
   id: 1,
@@ -16,7 +16,7 @@ describe('RedisOm (async configuration)', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      imports: [SyncAppModule],
+      imports: [AsyncAppModule],
     }).compile();
 
     app = module.createNestApplication();
@@ -24,7 +24,7 @@ describe('RedisOm (async configuration)', () => {
     await app.init();
   });
 
-  it(`should return created entity`, async () => {
+  it(`should return created entity`, () => {
     return request(server).post('/user').send(body).expect(201, body);
   });
 
