@@ -18,7 +18,9 @@ export interface RedisOmModuleAsyncOptions
   useClass?: Type<RedisOmOptionsFactory>;
   useFactory?: (
     ...args: any[]
-  ) => Promise<RedisOmModuleOptions> | RedisOmModuleOptions;
+  ) =>
+    | Promise<Omit<RedisOmModuleOptions, 'name'>>
+    | Omit<RedisOmModuleOptions, 'name'>;
   inject?: any[];
   extraProviders?: Provider[];
 }
