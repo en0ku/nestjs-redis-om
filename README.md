@@ -58,7 +58,7 @@ import { UserService } from './user.service';
 export class UserModule {}
 ```
 
-### Import in the app module:
+### Import in the App.module.ts:
 
 sync:
 
