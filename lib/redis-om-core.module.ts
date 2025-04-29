@@ -5,6 +5,7 @@ import {
   Logger,
   Module,
   OnApplicationShutdown,
+  OnModuleInit,
   Provider,
 } from '@nestjs/common';
 import * as redis from 'redis';
@@ -26,7 +27,7 @@ import {
 
 @Global()
 @Module({})
-export class RedisOmCoreModule implements OnApplicationShutdown {
+export class RedisOmCoreModule implements OnApplicationShutdown, OnModuleInit {
   private readonly logger = new Logger('RedisOmModule');
 
   constructor(
@@ -42,7 +43,8 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     };
     const dataSourceProvider = {
       provide: getDataSourceToken(options),
-      useFactory: async () => await this.createDataSourceFactory(options),
+      useFactory: async () =>
+        await RedisOmCoreModule.createDataSourceFactory(options),
     };
 
     const providers = [dataSourceProvider, redisOmModuleOptions];
@@ -58,12 +60,17 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
   static forRootAsync(options: RedisOmModuleAsyncOptions): DynamicModule {
     const dataSourceProvider = {
       provide: getDataSourceToken(options.name),
-      useFactory: async (dataSourceOptions: RedisOmModuleOptions) => {
-        return await this.createDataSourceFactory(dataSourceOptions);
+      useFactory: async (
+        dataSourceOptions: Omit<RedisOmModuleOptions, 'name'>,
+      ) => {
+        return await RedisOmCoreModule.createDataSourceFactory({
+          ...dataSourceOptions,
+          name: options.name,
+        });
       },
       inject: [REDIS_OM_MODULE_OPTIONS],
     };
-    const asyncProviders = this.createAsyncProviders(options);
+    const asyncProviders = RedisOmCoreModule.createAsyncProviders(options);
     const providers = [
       ...asyncProviders,
       dataSourceProvider,
@@ -93,11 +100,11 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     options: RedisOmModuleAsyncOptions,
   ): Provider[] {
     if (options.useExisting || options.useFactory) {
-      return [this.createAsyncOptionsProvider(options)];
+      return [RedisOmCoreModule.createAsyncOptionsProvider(options)];
     }
     const useClass = options.useClass;
     return [
-      this.createAsyncOptionsProvider(options),
+      RedisOmCoreModule.createAsyncOptionsProvider(options),
       {
         provide: useClass,
         useClass,
@@ -111,17 +118,39 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     if (options.useFactory) {
       return {
         provide: REDIS_OM_MODULE_OPTIONS,
-        useFactory: options.useFactory,
+        useFactory: async (...args: any[]) => {
+          const config = await options.useFactory(...args);
+          return {
+            ...config,
+            name: options.name,
+          };
+        },
         inject: options.inject || [],
       };
     }
     const inject = [options.useClass || options.useExisting];
     return {
       provide: REDIS_OM_MODULE_OPTIONS,
-      useFactory: async (optionsFactory: RedisOmOptionsFactory) =>
-        await optionsFactory.createRedisOmOptions(options.name),
+      useFactory: async (optionsFactory: RedisOmOptionsFactory) => {
+        const config = await optionsFactory.createRedisOmOptions(options.name);
+        return {
+          ...config,
+          name: options.name,
+        };
+      },
       inject,
     };
+  }
+
+  async onModuleInit() {
+    this.logger.log(`"${this.options.name}" connected.`);
+
+    const dataSource = this.moduleRef.get<RedisClient>(
+      getDataSourceToken(this.options),
+    );
+    dataSource.on('error', (err) => {
+      this.logger.error(`Redis error (${this.options.name}): ${err.message}`);
+    });
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -130,7 +159,7 @@ export class RedisOmCoreModule implements OnApplicationShutdown {
     );
     try {
       if (dataSource && dataSource.isOpen) {
-        await dataSource.disconnect();
+        await dataSource.quit();
         this.logger.log('data source has disconnected');
       }
     } catch (e) {
